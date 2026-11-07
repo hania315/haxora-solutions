@@ -885,7 +885,9 @@
               <p>Apni maloomat bharen — submit karen — aap ka message seedha hamare email haxorasolutions@yahoo.com par pohanch jayega, aur team aap ko fees aur batch ki tafseel bhej degi.</p>
             </div>
             <div class="enroll-wrap">
-              <form class="lead" id="courseForm">
+              <form class="lead" id="courseForm" name="course-registration" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+                <input type="hidden" name="form-name" value="course-registration" />
+                <p style="display:none;"><label>Don't fill this out if you're human: <input name="bot-field" /></label></p>
                 <h3 id="cfHeading">Course Registration</h3>
                 <p>Saare khaanay (message ke ilawa) bharna zaroori hai taake team aap se sahi tareeqe se rabta kar sake.</p>
                 <div class="f-field">
@@ -926,7 +928,7 @@
                   <textarea id="cfMsg" name="Message" placeholder="Koi sawal ya apne goal ke baare mein likhen, e.g. Main apni shop ke liye ye course karna chahta hoon..."></textarea>
                 </div>
                 <button type="submit" class="btn btn-gold" id="courseSubmit">Register Karen</button>
-                <div class="form-done" id="courseFormDone">Shukriya! Aap ki registration ke liye email tayyar kar di gayi hai — apni email app se bhej den, team jald aap ko is course ki fees aur batch ki tafseel bhej degi.</div>
+                <div class="form-done" id="courseFormDone">Shukriya! Aap ki registration mil gayi hai — team jald aap ko is course ki fees aur batch ki tafseel bhej degi.</div>
               </form>
               <p style="text-align:center;color:var(--muted-2);font-size:14px;margin-top:18px;">Direct baat karni hai? <a href="https://wa.me/923444046085?text=Assalamualaikum%2C%20mujhe%20Haxora%20courses%20ke%20baare%20mein%20maloomat%20chahiye." target="_blank" rel="noopener" style="color:var(--gold);font-weight:700;">WhatsApp 0344 4046085</a> par message karen.</p>
             </div>
@@ -1039,7 +1041,9 @@
                   <span><h3>Email</h3><p>Likhen: <b>haxorasolutions@yahoo.com</b></p></span>
                 </a>
               </div>
-              <form class="lead" id="leadForm">
+              <form class="lead" id="leadForm" name="lead-inquiry" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+                <input type="hidden" name="form-name" value="lead-inquiry" />
+                <p style="display:none;"><label>Don't fill this out if you're human: <input name="bot-field" /></label></p>
                 <h3>Quote / Tafseel Ke Liye Form Bharen</h3>
                 <p>Apni maloomat bharen — submit karte hi aap ka message seedha hamare email par pohanch jayega.</p>
                 <div class="f-row">
@@ -1083,7 +1087,7 @@
                   <textarea id="fMsg" name="Message" placeholder="e.g. Meri Lahore mein clothing shop hai, mujhe Google par aana hai..."></textarea>
                 </div>
                 <button type="submit" class="btn btn-gold" id="leadSubmit">Message Bhejen</button>
-                <div class="form-done" id="formDone">Shukriya! Aap ke message ke liye email tayyar kar di gayi hai — apni email app se bhej den, team jald aap se rabta karegi.</div>
+                <div class="form-done" id="formDone">Shukriya! Aap ka message mil gaya hai — team jald aap se rabta karegi.</div>
               </form>
             </div>
           </div>
@@ -1420,37 +1424,31 @@
           });
         });
 
-        /* ---------- course form -> mailto ---------- */
+        /* ---------- course form -> Netlify Forms ---------- */
         document.getElementById("courseForm").addEventListener("submit", function (e) {
           e.preventDefault();
-          var course = document.getElementById("cfCourse").value || currentCourse.title;
-          var lines = [
-            "Course: " + course,
-            "Name: " + document.getElementById("cfName").value,
-            "Phone / WhatsApp: " + document.getElementById("cfPhone").value,
-            "Email: " + document.getElementById("cfEmail").value,
-            "City: " + document.getElementById("cfCity").value,
-            "Experience Level: " + document.getElementById("cfLevel").value,
-            "Message: " + (document.getElementById("cfMsg").value || "—")
-          ];
-          var subject = "Course Registration — " + course;
-          window.location.href = "mailto:haxorasolutions@yahoo.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(lines.join("\n"));
-          document.getElementById("courseFormDone").classList.add("show");
+          var form = document.getElementById("courseForm");
+          var btn = document.getElementById("courseSubmit");
+          var done = document.getElementById("courseFormDone");
+          if (!document.getElementById("cfCourse").value && window.currentCourse) { document.getElementById("cfCourse").value = currentCourse.title; }
+          btn.disabled = true;
+          fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(new FormData(form)).toString() })
+            .then(function (res) { if (!res.ok) { throw new Error("submit failed"); } done.textContent = "Shukriya! Aap ki registration mil gayi hai — team jald aap ko is course ki fees aur batch ki tafseel bhej degi."; done.classList.add("show"); form.reset(); })
+            .catch(function () { done.textContent = "Kuch masla hua — braah-e-karam WhatsApp 0344 4046085 par message kar den."; done.classList.add("show"); })
+            .finally(function () { btn.disabled = false; });
         });
 
-        /* ---------- lead form -> mailto ---------- */
+        /* ---------- lead form -> Netlify Forms ---------- */
         document.getElementById("leadForm").addEventListener("submit", function (e) {
           e.preventDefault();
-          var interest = document.getElementById("fInterest").value;
-          var lines = [
-            "Name: " + document.getElementById("fName").value,
-            "Phone / WhatsApp: " + document.getElementById("fPhone").value,
-            "Interest: " + interest,
-            "Message: " + (document.getElementById("fMsg").value || "—")
-          ];
-          var subject = "New Haxora Inquiry — " + interest;
-          window.location.href = "mailto:haxorasolutions@yahoo.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(lines.join("\n"));
-          document.getElementById("formDone").classList.add("show");
+          var form = document.getElementById("leadForm");
+          var btn = document.getElementById("leadSubmit");
+          var done = document.getElementById("formDone");
+          btn.disabled = true;
+          fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(new FormData(form)).toString() })
+            .then(function (res) { if (!res.ok) { throw new Error("submit failed"); } done.textContent = "Shukriya! Aap ka message mil gaya hai — team jald aap se rabta karegi."; done.classList.add("show"); form.reset(); })
+            .catch(function () { done.textContent = "Kuch masla hua — braah-e-karam WhatsApp 0344 4046085 par message kar den."; done.classList.add("show"); })
+            .finally(function () { btn.disabled = false; });
         });
         /* ===== PRO: preloader, progress, header, reveal, rotator, spotlight, tilt, magnetic, timeline ===== */
         window.addEventListener("load", function(){ setTimeout(function(){ var pl=document.getElementById("preloader"); if(pl) pl.classList.add("done"); }, 650); });
